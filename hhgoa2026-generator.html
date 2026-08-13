@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>HH Goa 2026 — Frame &amp; Builder Pass Generator</title>
+<meta name="description" content="Upload a photo, get a branded HH Goa 2026 PFP frame or Builder Pass, and share it to X with #FrameInGoa.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B2E2C;
+    --teal:#123F3A;
+    --sea:#1D7A8C;
+    --sun:#FFB23F;
+    --coral:#FF6B4A;
+    --sand:#F7E9D2;
+    --hot:#E8447A;
+    --line: rgba(247,233,210,0.16);
+    --radius: 18px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 8px 8px, rgba(29,122,140,0.14) 2px, transparent 2.5px) 0 0/32px 32px,
+      var(--sand);
+    color:var(--ink);
+    font-family:'Space Grotesk', sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1040px;margin:0 auto;padding:20px 16px 60px;}
+
+  header.top{
+    display:flex;align-items:center;gap:14px;
+    padding:18px 4px 22px;
+    flex-wrap:wrap;
+  }
+  .sunmark{width:40px;height:40px;flex:0 0 auto;}
+  header.top h1{
+    font-family:'Bungee', sans-serif;
+    font-weight:400;
+    font-size:clamp(22px,4.4vw,34px);
+    letter-spacing:0.5px;
+    margin:0;
+    color:var(--ink);
+    line-height:1.05;
+  }
+  header.top .sub{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--sea);
+    margin-top:4px;
+  }
+
+  .band{
+    background:var(--ink);
+    color:var(--sand);
+    border-radius:var(--radius);
+    padding:10px 16px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:12.5px;
+    letter-spacing:0.02em;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:20px;
+    border:1px solid rgba(255,178,63,0.35);
+  }
+  .band b{color:var(--sun);}
+  .band code{background:rgba(247,233,210,0.12);padding:2px 6px;border-radius:5px;color:var(--coral);}
+
+  .tabs{
+    display:flex;gap:8px;margin-bottom:18px;
+    background:var(--teal);
+    padding:6px;border-radius:14px;
+    width:fit-content;
+    max-width:100%;
+  }
+  .tab{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:14px;
+    padding:10px 18px;
+    border-radius:10px;
+    border:none;
+    cursor:pointer;
+    background:transparent;
+    color:var(--sand);
+    opacity:0.6;
+    transition:all .15s ease;
+    white-space:nowrap;
+  }
+  .tab.active{opacity:1;background:var(--coral);color:var(--ink);box-shadow:0 2px 0 rgba(0,0,0,0.15) inset;}
+
+  .grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:26px;
+    align-items:start;
+  }
+  @media (max-width:800px){
+    .grid{grid-template-columns:1fr;}
+  }
+
+  .panel{
+    background:#fff;
+    border:1px solid rgba(11,46,44,0.1);
+    border-radius:var(--radius);
+    padding:20px;
+  }
+  .panel h2{
+    font-family:'Bungee',sans-serif;
+    font-weight:400;
+    font-size:15px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    margin:0 0 14px;
+    color:var(--sea);
+  }
+
+  .dropzone{
+    border:2px dashed rgba(29,122,140,0.4);
+    border-radius:14px;
+    padding:26px 16px;
+    text-align:center;
+    cursor:pointer;
+    background:repeating-linear-gradient(135deg, rgba(29,122,140,0.05) 0 10px, transparent 10px 20px);
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .dropzone.drag{border-color:var(--coral); background:rgba(255,107,74,0.08);}
+  .dropzone p{margin:6px 0 0;font-size:13px;color:#456;}
+  .dropzone .big{font-family:'Space Grotesk';font-weight:700;font-size:16px;color:var(--ink);}
+  .dropzone input{display:none;}
+
+  .field{margin-top:16px;}
+  .field label{
+    display:block;font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:0.08em;text-transform:uppercase;
+    color:var(--sea);margin-bottom:6px;
+  }
+  .field input[type=text]{
+    width:100%;padding:11px 12px;border-radius:10px;
+    border:1.5px solid rgba(11,46,44,0.18);
+    font-family:'Space Grotesk';font-size:15px;font-weight:600;
+    color:var(--ink);background:var(--sand);
+  }
+  .field input[type=text]:focus{outline:2px solid var(--coral);}
+
+  .titlerow{display:flex;gap:8px;margin-top:16px;}
+  .titlerow input{flex:1;}
+  .ghostbtn{
+    font-family:'JetBrains Mono';font-size:12px;font-weight:700;
+    border:1.5px solid var(--sea);color:var(--sea);background:#fff;
+    border-radius:10px;padding:0 14px;cursor:pointer;white-space:nowrap;
+  }
+  .ghostbtn:hover{background:var(--sea);color:#fff;}
+
+  .adjustrow{display:flex;align-items:center;gap:10px;margin-top:18px;}
+  .adjustrow label{font-family:'JetBrains Mono';font-size:11px;color:var(--sea);letter-spacing:0.06em;text-transform:uppercase;white-space:nowrap;}
+  input[type=range]{flex:1;accent-color:var(--coral);}
+  .hint{font-size:12px;color:#5a6b6a;margin-top:8px;line-height:1.5;}
+
+  .previewbox{
+    background:var(--ink);
+    border-radius:var(--radius);
+    padding:18px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:16px;
+    position:sticky;
+    top:16px;
+  }
+  canvas#stage{
+    width:100%;
+    max-width:420px;
+    border-radius:10px;
+    touch-action:none;
+    cursor:grab;
+    background:#fff;
+    box-shadow:0 10px 30px rgba(0,0,0,0.35);
+  }
+  canvas#stage:active{cursor:grabbing;}
+  .empty-msg{
+    color:var(--sand);opacity:0.55;font-family:'JetBrains Mono';font-size:12px;
+    text-align:center;max-width:260px;
+  }
+
+  .actions{display:flex;gap:10px;width:100%;max-width:420px;flex-wrap:wrap;}
+  .btn{
+    flex:1;
+    min-width:140px;
+    font-family:'Space Grotesk';font-weight:700;font-size:15px;
+    padding:13px 14px;border-radius:12px;border:none;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+  }
+  .btn:disabled{opacity:0.4;cursor:not-allowed;}
+  .btn.primary{background:var(--sun);color:var(--ink);}
+  .btn.primary:hover:not(:disabled){background:#ffc35f;}
+  .btn.x{background:var(--sand);color:var(--ink);}
+  .btn.x:hover:not(:disabled){background:#fff;}
+
+  footer{
+    text-align:center;margin-top:34px;
+    font-family:'JetBrains Mono';font-size:11px;color:#6a7c7a;letter-spacing:0.04em;
+  }
+  footer a{color:var(--sea);}
+
+  .toast{
+    position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:var(--sand);
+    font-family:'Space Grotesk';font-weight:600;font-size:14px;
+    padding:12px 20px;border-radius:12px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.3);
+    opacity:0;pointer-events:none;transition:all .25s ease;
+    z-index:50;
+    max-width:90vw;text-align:center;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <svg class="sunmark" viewBox="0 0 40 40"><circle cx="20" cy="20" r="9" fill="#FF6B4A"/><g stroke="#FFB23F" stroke-width="3" stroke-linecap="round">
+      <line x1="20" y1="1" x2="20" y2="7"/><line x1="20" y1="33" x2="20" y2="39"/>
+      <line x1="1" y1="20" x2="7" y2="20"/><line x1="33" y1="20" x2="39" y2="20"/>
+      <line x1="6.3" y1="6.3" x2="10.5" y2="10.5"/><line x1="29.5" y1="29.5" x2="33.7" y2="33.7"/>
+      <line x1="33.7" y1="6.3" x2="29.5" y2="10.5"/><line x1="10.5" y1="29.5" x2="6.3" y2="33.7"/>
+    </g></svg>
+    <div>
+      <h1>HH Goa 2026</h1>
+      <div class="sub">Frame &amp; Builder Pass Generator</div>
+    </div>
+  </header>
+
+  <div class="band">
+    <span>🌴</span>
+    <span>Upload once, download instantly, post with <b>#FrameInGoa</b> — required for your submission to count.</span>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" id="tabA" data-format="frame">PFP Frame</button>
+    <button class="tab" id="tabB" data-format="card">Builder Pass</button>
+  </div>
+
+  <div class="grid">
+    <div class="panel">
+      <h2>1 · Your photo</h2>
+      <div class="dropzone" id="dropzone">
+        <div class="big">Tap to upload a photo</div>
+        <p>JPG, PNG, or HEIC (iPhone) — any crop or orientation works</p>
+        <input type="file" id="fileInput" accept="image/*,.heic,.heif">
+      </div>
+      <div class="adjustrow" id="zoomRow" style="display:none;">
+        <label>Zoom</label>
+        <input type="range" id="zoomSlider" min="100" max="300" value="100">
+      </div>
+      <p class="hint" id="dragHint" style="display:none;">Drag the photo in the preview to reposition it.</p>
+
+      <div id="cardFields" style="display:none;">
+        <h2 style="margin-top:22px;">2 · Your details</h2>
+        <div class="field">
+          <label>Name</label>
+          <input type="text" id="nameInput" maxlength="26" placeholder="e.g. Priya Menon">
+        </div>
+        <div class="field">
+          <label>Stack / Role</label>
+          <input type="text" id="roleInput" maxlength="22" placeholder="e.g. Full-Stack, ML, Design">
+        </div>
+        <div class="field">
+          <label>Builder title</label>
+          <div class="titlerow">
+            <input type="text" id="titleInput" maxlength="46" placeholder="Tap generate →">
+            <button class="ghostbtn" id="genTitleBtn" type="button">🎲 Generate</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="previewbox">
+      <canvas id="stage" width="1080" height="1080"></canvas>
+      <div class="empty-msg" id="emptyMsg">Your HH Goa 2026 graphic will render live here the moment you upload a photo.</div>
+      <div class="actions">
+        <button class="btn primary" id="downloadBtn" disabled>⬇ Download</button>
+        <button class="btn x" id="shareBtn" disabled>𝕏 Share to X</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Built for HH Goa 2026 · everything renders in your browser — no upload, no login, no signup wall.
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/heic2any/0.0.4/heic2any.min.js" referrerpolicy="no-referrer"></script>
+<script>
+(function(){
+  "use strict";
+
+  // ---------- state ----------
+  var state = {
+    format: 'frame',        // 'frame' | 'card'
+    img: null,               // HTMLImageElement
+    zoom: 1,                 // 1..3
+    panX: 0, panY: 0,        // px offset in canvas space
+    name: '', role: '', title: ''
+  };
+
+  var canvas = document.getElementById('stage');
+  var ctx = canvas.getContext('2d');
+  var emptyMsg = document.getElementById('emptyMsg');
+  var downloadBtn = document.getElementById('downloadBtn');
+  var shareBtn = document.getElementById('shareBtn');
+  var dropzone = document.getElementById('dropzone');
+  var fileInput = document.getElementById('fileInput');
+  var zoomRow = document.getElementById('zoomRow');
+  var zoomSlider = document.getElementById('zoomSlider');
+  var dragHint = document.getElementById('dragHint');
+  var cardFields = document.getElementById('cardFields');
+  var nameInput = document.getElementById('nameInput');
+  var roleInput = document.getElementById('roleInput');
+  var titleInput = document.getElementById('titleInput');
+  var genTitleBtn = document.getElementById('genTitleBtn');
+
+  function toast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast._h);
+    toast._h = setTimeout(function(){ t.classList.remove('show'); }, 2600);
+  }
+
+  // ---------- tabs ----------
+  var tabA = document.getElementById('tabA');
+  var tabB = document.getElementById('tabB');
+  function setFormat(fmt){
+    state.format = fmt;
+    tabA.classList.toggle('active', fmt==='frame');
+    tabB.classList.toggle('active', fmt==='card');
+    cardFields.style.display = fmt==='card' ? 'block' : 'none';
+    canvas.width = fmt==='frame' ? 1080 : 1080;
+    canvas.height = fmt==='frame' ? 1080 : 1350;
+    render();
+  }
+  tabA.addEventListener('click', function(){ setFormat('frame'); });
+  tabB.addEventListener('click', function(){ setFormat('card'); });
+
+  // ---------- upload ----------
+  dropzone.addEventListener('click', function(){ fileInput.click(); });
+  ['dragenter','dragover'].forEach(function(ev){
+    dropzone.addEventListener(ev, function(e){ e.preventDefault(); dropzone.classList.add('drag'); });
+  });
+  ['dragleave','drop'].forEach(function(ev){
+    dropzone.addEventListener(ev, function(e){ e.preventDefault(); dropzone.classList.remove('drag'); });
+  });
+  dropzone.addEventListener('drop', function(e){
+    if(e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+  fileInput.addEventListener('change', function(e){
+    if(e.target.files && e.target.files[0]) handleFile(e.target.files[0]);
+  });
+
+  function handleFile(file){
+    var isHeic = /heic|heif/i.test(file.type) || /\.hei[cf]$/i.test(file.name || '');
+    if(isHeic && window.heic2any){
+      toast('Converting HEIC photo…');
+      window.heic2any({ blob: file, toType: 'image/jpeg', quality: 0.92 })
+        .then(function(converted){ loadImageFromBlob(converted); })
+        .catch(function(){
+          toast('Could not convert this HEIC file — try a JPG/PNG export.');
+        });
+    } else {
+      loadImageFromBlob(file);
+    }
+  }
+
+  function loadImageFromBlob(blob){
+    var url = URL.createObjectURL(blob);
+    var image = new Image();
+    image.onload = function(){
+      state.img = image;
+      state.zoom = 1;
+      state.panX = 0; state.panY = 0;
+      zoomSlider.value = 100;
+      zoomRow.style.display = 'flex';
+      dragHint.style.display = 'block';
+      emptyMsg.style.display = 'none';
+      downloadBtn.disabled = false;
+      shareBtn.disabled = false;
+      render();
+    };
+    image.onerror = function(){ toast('Could not read that image — try a different file.'); };
+    image.src = url;
+  }
+
+  // ---------- drag to reposition ----------
+  var dragging = false, lastX=0, lastY=0;
+  canvas.addEventListener('pointerdown', function(e){
+    if(!state.img) return;
+    dragging = true; lastX = e.clientX; lastY = e.clientY;
+    canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener('pointermove', function(e){
+    if(!dragging || !state.img) return;
+    var rect = canvas.getBoundingClientRect();
+    var scaleF = canvas.width / rect.width;
+    var dx = (e.clientX - lastX) * scaleF;
+    var dy = (e.clientY - lastY) * scaleF;
+    lastX = e.clientX; lastY = e.clientY;
+    state.panX += dx; state.panY += dy;
+    render();
+  });
+  window.addEventListener('pointerup', function(){ dragging = false; });
+  canvas.addEventListener('wheel', function(e){
+    if(!state.img) return;
+    e.preventDefault();
+    var next = state.zoom + (e.deltaY < 0 ? 0.06 : -0.06);
+    next = Math.max(1, Math.min(3, next));
+    state.zoom = next;
+    zoomSlider.value = Math.round(next*100);
+    render();
+  }, { passive:false });
+  zoomSlider.addEventListener('input', function(){
+    state.zoom = zoomSlider.value / 100;
+    render();
+  });
+
+  // ---------- builder title generator ----------
+  var TITLE_TEMPLATES = [
+    "Chief {r} Whisperer",
+    "Head of Sunset-Driven {r}",
+    "VP of Coconut-Powered {r}",
+    "Minister of Monsoon {r}",
+    "Lead {r} Alchemist — Goa Chapter",
+    "Director of Late-Night {r} Ops",
+    "Senior {r} Wizard, Beach Division",
+    "Chief Vibes &amp; {r} Officer",
+    "Head Coach, Team {r}",
+    "Founder of the {r} Beach Club",
+    "{r} Lifeguard on Duty",
+    "Resident {r} Sorcerer"
+  ];
+  function generateTitle(){
+    var role = (roleInput.value || 'Builder').trim();
+    var t = TITLE_TEMPLATES[Math.floor(Math.random()*TITLE_TEMPLATES.length)];
+    var out = t.replace('{r}', role).replace(/&amp;/g,'&');
+    titleInput.value = out;
+    state.title = out;
+    render();
+  }
+  genTitleBtn.addEventListener('click', generateTitle);
+  nameInput.addEventListener('input', function(){ state.name = nameInput.value; render(); });
+  roleInput.addEventListener('input', function(){ state.role = roleInput.value; render(); });
+  titleInput.addEventListener('input', function(){ state.title = titleInput.value; render(); });
+
+  // ---------- drawing helpers ----------
+  function drawPhotoInRegion(clipFn, cx, cy, w, h){
+    if(!state.img) return;
+    ctx.save();
+    clipFn();
+    ctx.clip();
+    var iw = state.img.width, ih = state.img.height;
+    var baseScale = Math.max(w/iw, h/ih);
+    var scale = baseScale * state.zoom;
+    var dw = iw*scale, dh = ih*scale;
+    var px = cx + state.panX;
+    var py = cy + state.panY;
+    // clamp so image always covers the region
+    var minX = cx + w/2 - dw/2, maxX = cx - w/2 + dw/2;
+    var minY = cy + h/2 - dh/2, maxY = cy - h/2 + dh/2;
+    if(minX > maxX){ px = cx; } else { px = Math.min(Math.max(px, minX), maxX); }
+    if(minY > maxY){ py = cy; } else { py = Math.min(Math.max(py, minY), maxY); }
+    state.panX = px - cx; state.panY = py - cy;
+    ctx.drawImage(state.img, px-dw/2, py-dh/2, dw, dh);
+    ctx.restore();
+  }
+
+  function drawTilePattern(x,y,w,h,size,colA,colB){
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x,y,w,h); ctx.clip();
+    for(var yy=y - size; yy < y+h+size; yy += size){
+      for(var xx=x - size; xx < x+w+size; xx += size){
+        var idx = Math.round((xx-x)/size) + Math.round((yy-y)/size);
+        ctx.fillStyle = idx % 2 === 0 ? colA : colB;
+        ctx.save();
+        ctx.translate(xx+size/2, yy+size/2);
+        ctx.rotate(Math.PI/4);
+        ctx.fillRect(-size/2*0.72, -size/2*0.72, size*0.72, size*0.72);
+        ctx.restore();
+        ctx.beginPath();
+        ctx.arc(xx+size/2, yy+size/2, size*0.16, 0, Math.PI*2);
+        ctx.fillStyle = idx % 2 === 0 ? colB : colA;
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawSun(cx,cy,r,color){
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle = color; ctx.lineWidth = r*0.28; ctx.lineCap='round';
+    for(var i=0;i<8;i++){
+      var a = i*Math.PI/4;
+      var x1 = cx + Math.cos(a)*r*1.55, y1 = cy + Math.sin(a)*r*1.55;
+      var x2 = cx + Math.cos(a)*r*2.15, y2 = cy + Math.sin(a)*r*2.15;
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawPalm(cx,cy,scale,color){
+    ctx.save();
+    ctx.translate(cx,cy); ctx.scale(scale,scale);
+    ctx.strokeStyle = color; ctx.lineWidth = 5; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(0,40); ctx.quadraticCurveTo(-8,10,4,-20); ctx.stroke();
+    ctx.fillStyle = color;
+    var leaves = [[-60,-46],[-40,-58],[-10,-64],[22,-58],[46,-42],[50,-20]];
+    leaves.forEach(function(p){
+      ctx.beginPath();
+      ctx.moveTo(4,-20);
+      ctx.quadraticCurveTo(p[0]*0.5,p[1]*0.5, p[0], p[1]);
+      ctx.quadraticCurveTo(p[0]*0.65+8,p[1]*0.65+6, 4,-20);
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  function fitText(text, maxWidth, startSize, family, weight){
+    var size = startSize;
+    weight = weight || 700;
+    do {
+      ctx.font = weight+' '+size+'px '+family;
+      if(ctx.measureText(text).width <= maxWidth || size <= 12) break;
+      size -= 2;
+    } while(true);
+    return size;
+  }
+
+  function roundRectPath(x,y,w,h,r){
+    if (typeof r === 'number') r = {tl:r,tr:r,br:r,bl:r};
+    ctx.beginPath();
+    ctx.moveTo(x+r.tl,y);
+    ctx.lineTo(x+w-r.tr,y);
+    ctx.arcTo(x+w,y,x+w,y+r.tr,r.tr);
+    ctx.lineTo(x+w,y+h-r.br);
+    ctx.arcTo(x+w,y+h,x+w-r.br,y+h,r.br);
+    ctx.lineTo(x+r.bl,y+h);
+    ctx.arcTo(x,y+h,x,y+h-r.bl,r.bl);
+    ctx.lineTo(x,y+r.tl);
+    ctx.arcTo(x,y,x+r.tl,y,r.tl);
+    ctx.closePath();
+  }
+
+  // ---------- FORMAT A: PFP FRAME ----------
+  function renderFrame(){
+    var W=1080,H=1080;
+    ctx.clearRect(0,0,W,H);
+
+    // backdrop
+    var bg = ctx.createLinearGradient(0,0,W,H);
+    bg.addColorStop(0,'#123F3A'); bg.addColorStop(1,'#0B2E2C');
+    ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+    drawTilePattern(0,0,W,H,54,'rgba(247,233,210,0.05)','rgba(247,233,210,0.02)');
+
+    var cx=W/2, cy=W/2-18, R=372;
+
+    // outer sunset ring
+    var ring;
+    try{
+      ring = ctx.createConicGradient(-Math.PI/2, cx, cy);
+      ring.addColorStop(0,'#FFB23F'); ring.addColorStop(0.35,'#FF6B4A');
+      ring.addColorStop(0.6,'#E8447A'); ring.addColorStop(0.85,'#1D7A8C'); ring.addColorStop(1,'#FFB23F');
+    } catch(e){
+      ring = ctx.createLinearGradient(cx-R,cy-R,cx+R,cy+R);
+      ring.addColorStop(0,'#FFB23F'); ring.addColorStop(0.5,'#FF6B4A'); ring.addColorStop(1,'#1D7A8C');
+    }
+    ctx.beginPath(); ctx.arc(cx,cy,R+34,0,Math.PI*2); ctx.fillStyle=ring; ctx.fill();
+
+    ctx.beginPath(); ctx.arc(cx,cy,R+8,0,Math.PI*2); ctx.fillStyle='#F7E9D2'; ctx.fill();
+
+    // photo
+    if(state.img){
+      drawPhotoInRegion(function(){ ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); }, cx,cy, R*2, R*2);
+    } else {
+      ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.fillStyle='#E4D4B4'; ctx.fill();
+      ctx.fillStyle='#0B2E2C'; ctx.font='600 26px Space Grotesk'; ctx.textAlign='center';
+      ctx.fillText('upload a photo', cx, cy);
+    }
+
+    // thin inner rim
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.lineWidth=6; ctx.strokeStyle='#F7E9D2'; ctx.stroke();
+
+    // decorative icons
+    drawSun(cx - R*0.62, cy - R*0.72, 15, '#FFB23F');
+    drawPalm(cx + R*0.66, cy - R*0.62, 1.0, '#F7E9D2');
+
+    // bottom ribbon banner
+    var bw=560, bh=112, bx=cx-bw/2, by=cy+R-46;
+    ctx.save();
+    ctx.translate(bx+bw/2, by+bh/2);
+    ctx.rotate(-0.035);
+    ctx.translate(-(bw/2), -(bh/2));
+    // ribbon tails
+    ctx.fillStyle = '#c94f36';
+    ctx.beginPath(); ctx.moveTo(-26,10); ctx.lineTo(0,10); ctx.lineTo(-14,bh-6); ctx.lineTo(-44,bh-16); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(bw+26,10); ctx.lineTo(bw,10); ctx.lineTo(bw+14,bh-6); ctx.lineTo(bw+44,bh-16); ctx.closePath(); ctx.fill();
+    roundRectPath(0,0,bw,bh,14);
+    ctx.fillStyle = '#FF6B4A'; ctx.fill();
+    ctx.lineWidth=4; ctx.strokeStyle='#F7E9D2'; ctx.stroke();
+
+    ctx.fillStyle='#F7E9D2'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.font = '400 42px Bungee';
+    ctx.fillText('HH GOA 2026', bw/2, bh/2-14);
+    ctx.font = '700 17px JetBrains Mono';
+    ctx.fillStyle = '#123F3A';
+    ctx.fillText('B U I L D E R   E D I T I O N', bw/2, bh/2+26);
+    ctx.restore();
+
+    ctx.textAlign='left';
+  }
+
+  // ---------- FORMAT B: BUILDER ID CARD ----------
+  function renderCard(){
+    var W=1080,H=1350;
+    ctx.clearRect(0,0,W,H);
+
+    roundRectPath(0,0,W,H,40);
+    ctx.fillStyle='#F7E9D2'; ctx.fill();
+    ctx.save(); roundRectPath(0,0,W,H,40); ctx.clip();
+
+    // header band
+    var hg = ctx.createLinearGradient(0,0,W,260);
+    hg.addColorStop(0,'#FF6B4A'); hg.addColorStop(1,'#FFB23F');
+    ctx.fillStyle = hg; ctx.fillRect(0,0,W,260);
+    drawTilePattern(0,0,W,26,26,'rgba(11,46,44,0.55)','rgba(247,233,210,0.55)');
+
+    drawSun(96,150,22,'#F7E9D2');
+    drawPalm(W-110,150,1.25,'#F7E9D2');
+
+    ctx.fillStyle='#F7E9D2'; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+    ctx.font = '400 62px Bungee';
+    ctx.fillText('HH GOA 2026', 156, 132);
+    ctx.font = '700 22px JetBrains Mono';
+    ctx.fillStyle = 'rgba(11,46,44,0.75)';
+    ctx.fillText('B U I L D E R   P A S S', 158, 168);
+
+    // ticket perforation between header and body
+    ctx.save();
+    ctx.beginPath(); ctx.arc(0,260,22,0,Math.PI*2); ctx.fillStyle='#F7E9D2'; ctx.fill();
+    ctx.beginPath(); ctx.arc(W,260,22,0,Math.PI*2); ctx.fill();
+    ctx.setLineDash([10,10]);
+    ctx.strokeStyle='rgba(11,46,44,0.35)'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(40,260); ctx.lineTo(W-40,260); ctx.stroke();
+    ctx.restore();
+
+    // photo id block
+    var px=72, py=210, pw=380, ph=380;
+    ctx.save();
+    ctx.shadowColor='rgba(0,0,0,0.25)'; ctx.shadowBlur=18; ctx.shadowOffsetY=8;
+    roundRectPath(px-8,py-8,pw+16,ph+16,22); ctx.fillStyle='#F7E9D2'; ctx.fill();
+    ctx.restore();
+    roundRectPath(px-8,py-8,pw+16,ph+16,22); ctx.lineWidth=4; ctx.strokeStyle='#123F3A'; ctx.stroke();
+
+    if(state.img){
+      drawPhotoInRegion(function(){ roundRectPath(px,py,pw,ph,16); }, px+pw/2, py+ph/2, pw, ph);
+    } else {
+      roundRectPath(px,py,pw,ph,16); ctx.fillStyle='#E4D4B4'; ctx.fill();
+      ctx.fillStyle='#123F3A'; ctx.font='600 24px Space Grotesk'; ctx.textAlign='center';
+      ctx.fillText('upload a', px+pw/2, py+ph/2-14);
+      ctx.fillText('photo', px+pw/2, py+ph/2+20);
+      ctx.textAlign='left';
+    }
+
+    // name / role / title block
+    var tx = px+pw+48, tw = W - tx - 64;
+    var name = (state.name || 'YOUR NAME').toUpperCase();
+    var nameSize = fitText(name, tw, 62, 'Bungee', 400);
+    ctx.font = '400 '+nameSize+'px Bungee';
+    ctx.fillStyle='#0B2E2C';
+    ctx.fillText(name, tx, py+70);
+
+    var role = state.role || 'Builder';
+    ctx.font = '700 24px JetBrains Mono';
+    var roleW = ctx.measureText(role.toUpperCase()).width + 40;
+    roundRectPath(tx, py+96, Math.min(roleW, tw), 46, 23);
+    ctx.fillStyle='#1D7A8C'; ctx.fill();
+    ctx.fillStyle='#F7E9D2'; ctx.textBaseline='middle';
+    ctx.fillText(role.toUpperCase(), tx+20, py+96+24);
+    ctx.textBaseline='alphabetic';
+
+    var title = state.title || 'Tap "Generate" for a builder title';
+    ctx.font = '600 25px Space Grotesk';
+    ctx.fillStyle = '#123F3A';
+    wrapText(title, tx, py+186, tw, 32, 3);
+
+    // stub separator
+    ctx.save();
+    ctx.beginPath(); ctx.arc(0,700,20,0,Math.PI*2); ctx.fillStyle='#0B2E2C'; ctx.fill();
+    ctx.beginPath(); ctx.arc(W,700,20,0,Math.PI*2); ctx.fill();
+    ctx.setLineDash([9,9]); ctx.strokeStyle='rgba(11,46,44,0.3)'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(36,700); ctx.lineTo(W-36,700); ctx.stroke();
+    ctx.restore();
+
+    // lower tile strip
+    drawTilePattern(0,742,W,58,29,'rgba(29,122,140,0.85)','rgba(247,233,210,0.9)');
+
+    // fake barcode + footer info
+    var bx0=72, by0=860, bh0=210;
+    ctx.save();
+    var seed = ((state.name||'HHGOA')+(state.role||'2026')).split('').reduce(function(a,c){return a+c.charCodeAt(0);},0);
+    var bxc = bx0;
+    for(var i=0;i<46;i++){
+      var wBar = ((seed*(i+3))%5)+2;
+      var hBar = 90 + ((seed*(i+7))%bh0*0.55);
+      ctx.fillStyle = i%2===0 ? '#0B2E2C' : 'transparent';
+      ctx.fillRect(bxc, by0, wBar, hBar);
+      bxc += wBar+4;
+      if(bxc > 560) break;
+    }
+    ctx.restore();
+    ctx.font='700 16px JetBrains Mono'; ctx.fillStyle='#123F3A';
+    ctx.fillText('PASS NO. GOA-'+String(1000+(seed%8999)), bx0, by0+bh0*0.62+70);
+
+    ctx.textAlign='right';
+    ctx.font='400 30px Bungee'; ctx.fillStyle='#FF6B4A';
+    ctx.fillText('GOA · INDIA', W-72, 900);
+    ctx.font='700 20px JetBrains Mono'; ctx.fillStyle='#123F3A';
+    ctx.fillText('EST. 2026', W-72, 934);
+    ctx.font='700 16px JetBrains Mono'; ctx.fillStyle='#1D7A8C';
+    ctx.fillText('#FrameInGoa', W-72, 972);
+    ctx.textAlign='left';
+
+    // decorative scan grid, bottom right
+    var gx=W-192, gy=1040, gs=13;
+    for(var r0=0;r0<9;r0++){
+      for(var c0=0;c0<9;c0++){
+        var on = (seed*(r0+1)*(c0+1)) % 3 === 0;
+        if(on){ ctx.fillStyle='#0B2E2C'; ctx.fillRect(gx+c0*gs, gy+r0*gs, gs-2, gs-2); }
+      }
+    }
+    ctx.font='700 12px JetBrains Mono'; ctx.fillStyle='rgba(11,46,44,0.5)';
+    ctx.textAlign='center';
+    ctx.fillText('SCAN FOR VIBES', gx+58, gy+9*gs+22);
+    ctx.textAlign='left';
+
+    // outer card border
+    ctx.restore();
+    roundRectPath(6,6,W-12,H-12,36);
+    ctx.lineWidth=6; ctx.strokeStyle='#0B2E2C'; ctx.stroke();
+  }
+
+  function wrapText(text, x, y, maxWidth, lineHeight, maxLines){
+    var words = text.split(' ');
+    var line = '', lines = [];
+    for(var i=0;i<words.length;i++){
+      var test = line + words[i] + ' ';
+      if(ctx.measureText(test).width > maxWidth && line !== ''){
+        lines.push(line); line = words[i] + ' ';
+      } else { line = test; }
+    }
+    lines.push(line);
+    if(lines.length > maxLines){
+      lines = lines.slice(0, maxLines);
+      lines[maxLines-1] = lines[maxLines-1].trim() + '…';
+    }
+    lines.forEach(function(l,idx){ ctx.fillText(l.trim(), x, y + idx*lineHeight); });
+  }
+
+  function render(){
+    if(state.format === 'frame') renderFrame(); else renderCard();
+  }
+
+  // ---------- fonts ready ----------
+  if(document.fonts && document.fonts.ready){
+    document.fonts.load('400 42px Bungee');
+    document.fonts.load('700 20px JetBrains Mono');
+    document.fonts.ready.then(render);
+  }
+
+  // ---------- download ----------
+  function fileBaseName(){
+    return 'hhgoa2026-' + (state.format==='frame'?'frame':'pass') + (state.name ? '-'+state.name.toLowerCase().replace(/[^a-z0-9]+/g,'-') : '');
+  }
+  function getBlob(cb){
+    canvas.toBlob(function(blob){ cb(blob); }, 'image/png', 0.95);
+  }
+  downloadBtn.addEventListener('click', function(){
+    if(!state.img) return;
+    getBlob(function(blob){
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = fileBaseName()+'.png';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+      toast('Downloaded! Now hit Share to X 🌴');
+    });
+  });
+
+  // ---------- share to X ----------
+  var CAPTION = "I just built my HH Goa 2026 " + "" ;
+  function buildCaption(){
+    if(state.format === 'frame'){
+      return "Locked in my HH Goa 2026 profile pic ☀️🌴 See you on the beach. #FrameInGoa";
+    }
+    var role = state.role ? (' as a ' + state.role) : '';
+    return "Just minted my HH Goa 2026 Builder Pass" + role + " 🌴🛠️ #FrameInGoa";
+  }
+  shareBtn.addEventListener('click', function(){
+    if(!state.img) return;
+    getBlob(function(blob){
+      var text = buildCaption();
+      var file = new File([blob], fileBaseName()+'.png', { type:'image/png' });
+      if(navigator.canShare && navigator.canShare({ files:[file] })){
+        navigator.share({ files:[file], text: text })
+          .catch(function(){ /* user cancelled */ });
+      } else {
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url; a.download = fileBaseName()+'.png';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+        var intent = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text);
+        toast('Image downloaded — attach it in the tweet that just opened.');
+        setTimeout(function(){ window.open(intent, '_blank'); }, 300);
+      }
+    });
+  });
+
+  setFormat('frame');
+})();
+</script>
+</body>
+</html>
